@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HTML Quiz</title>
+    <style>
+        #antwort-container {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            gap: 10px;
+        }
+        @keyframes fadeDown {
+            from {
+                transform: translateY(-30px);
+                opacity: 0;
+            }
+            to {
+                transform: none;
+                opacity: 1;
+            }
+        }
+        .antwort-option {
+            width: 100%;
+            height: 50px;
+            background: #f5f5f5;
+            position: relative;
+            border: 1px solid #adadad;
+            border-radius: 5px;
+            overflow: hidden;
+            animation: fadeDown 0.5s ease-out;
+            cursor: pointer;
+            box-sizing: border-box;
+        }
+        .antwort-op-fueller {
+            height: 100%;
+            position: absolute;
+            left: 0;
+            top: 0;
+            background: #c2c2c2;
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+        .green .antwort-op-fueller {
+            background: #96d35f;
+        }
+        .green.antwort-option {
+            background: #cde8b5;
+            border: 1px solid #669d34;
+        }
+        .orange .antwort-op-fueller {
+            background: #feb43f;
+        }
+        .orange.antwort-option {
+            border: 1px solid #d38301;
+            background: #ffd9a8;
+        }
+        .red .antwort-op-fueller {
+            background: #ff6250;
+        }
+        .red.antwort-option {
+            border: 1px solid #e22400;
+            background: #ffb5af;
+        }
+        .antwort-text {
+            color: black;
+            font-size: 15px;
+            position: absolute;
+            z-index: 10;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 100%;
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+            padding-left: 15px;
+            font-family: Georgia, serif;
+            box-sizing: border-box;
+        }
+        #nf, #wiederholen {
+            padding: 10px 15px;
+            background: #76bb40;
+            color: #ffffff;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        #nf {
+            display: none;
+            position: absolute;
+            top: 10px;
+            right: 10px;
+        }
+        #nf.display {
+            display: inline-block;
+        }
+        #wiederholen {
+            display: none;
+            margin-top: 15px;
+        }
+        #wiederholen.display {
+            display: inline-block;
+        }
+        #frage {
+            font-size: 22px;
+        }
+        #anleitung {
+            font-size: 15px;
+            opacity: 0.5;
+        }
+        .ergebnis {
+            height: 70px;
+            cursor: default;
+        }
+        .ergebnis .antwort-text {
+            font-size: 17px;
+            flex-direction: column;
+            align-items: flex-start;
+            justify-content: center;
+            gap: 4px;
+        }
+        .ergebnis .klein {
+            font-size: 14px;
+            opacity: 0.7;
+        }
+    </style>
+</head>
+<body>
+    <h1 id="frage">Was ist HTML?</h1>
+    <p id="anleitung">Klicke die Antwort die du für richtig hältst: </p>
+    <button id="nf"><span id="nf-text">Nächste Frage in:</span> <span id="countdown">10</span></button>
+    <div id="antwort-container"></div>
+    <button id="wiederholen">Quiz wiederholen</button>
+
+    <script>
+        const quiz = [
+            {
+                frage: "Welcher HTML-Tag erstellt eine Tabelle?",
+                antwort_option: [
+                    { prozent: 100, text: "<table></table>" },
+                    { prozent: 40, text: "<tr></tr>" },
+                    { prozent: 20, text: "<td></td>" },
+                    { prozent: 10, text: "<tab></tab>" }
+                ]
+            },
+            {
+                frage: "Welcher Tag erstellt eine neue Tabellenzeile?",
+                antwort_option: [
+                    { prozent: 30, text: "<td></td>" },
+                    { prozent: 100, text: "<tr></tr>" },
+                    { prozent: 50, text: "<th></th>" },
+                    { prozent: 10, text: "<row></row>" }
+                ]
+            },
+            {
+                frage: "Welcher Tag erstellt eine normale Tabellenzelle?",
+                antwort_option: [
+                    { prozent: 100, text: "<td></td>" },
+                    { prozent: 50, text: "<th></th>" },
+                    { prozent: 20, text: "<tr></tr>" },
+                    { prozent: 10, text: "<cell></cell>" }
+                ]
+            },
+            {
+                frage: "Welcher Tag erstellt eine Überschrift innerhalb einer Tabelle?",
+                antwort_option: [
+                    { prozent: 40, text: "<td></td>" },
+                    { prozent: 100, text: "<th></th>" },
+                    { prozent: 20, text: "<thead></thead>" },
+                    { prozent: 10, text: "<header></header>" }
+                ]
+            },
+            {
+                frage: "Wofür wird der <thead>-Tag verwendet?",
+                antwort_option: [
+                    { prozent: 100, text: "Für den Kopfbereich einer Tabelle" },
+                    { prozent: 50, text: "Für den gesamten Tabelleninhalt" },
+                    { prozent: 30, text: "Für die letzte Tabellenzeile" },
+                    { prozent: 10, text: "Für eine einzelne Tabellenzelle" }
+                ]
+            },
+            {
+                frage: "Wofür wird der <tbody>-Tag verwendet?",
+                antwort_option: [
+                    { prozent: 30, text: "Für die Tabellenüberschrift" },
+                    { prozent: 100, text: "Für den Hauptinhalt einer Tabelle" },
+                    { prozent: 50, text: "Für die erste Tabellenzeile" },
+                    { prozent: 10, text: "Für den Tabellenrahmen" }
+                ]
+            },
+            {
+                frage: "Welcher Tag wird verwendet, um eine Tabellenzeile mit mehreren Zellen zu erstellen?",
+                antwort_option: [
+                    { prozent: 100, text: "<tr></tr>" },
+                    { prozent: 40, text: "<table></table>" },
+                    { prozent: 20, text: "<thead></thead>" },
+                    { prozent: 10, text: "<tbody></tbody>" }
+                ]
+            },
+            {
+                frage: "Welcher HTML-Code erstellt eine Tabellenüberschrift mit dem Text 'Name'?",
+                antwort_option: [
+                    { prozent: 100, text: "<th>Name</th>" },
+                    { prozent: 50, text: "<td>Name</td>" },
+                    { prozent: 20, text: "<tr>Name</tr>" },
+                    { prozent: 10, text: "<table>Name</table>" }
+                ]
+            },
+            {
+                frage: "In welcher Reihenfolge werden Tabellen-Tags normalerweise ineinander verschachtelt?",
+                antwort_option: [
+                    { prozent: 100, text: "<table> → <tr> → <td>" },
+                    { prozent: 50, text: "<td> → <table> → <tr>" },
+                    { prozent: 30, text: "<tr> → <td> → <table>" },
+                    { prozent: 10, text: "<table> → <td> → <tr>" }
+                ]
+            },
+            {
+                frage: "Was ist der Unterschied zwischen <th> und <td>?",
+                antwort_option: [
+                    { prozent: 100, text: "<th> erstellt eine Überschrift, <td> eine normale Zelle" },
+                    { prozent: 50, text: "<th> erstellt eine Zeile, <td> eine Tabelle" },
+                    { prozent: 30, text: "Beide erstellen ausschließlich Tabellenzeilen" },
+                    { prozent: 10, text: "<td> ist für Überschriften und <th> für normale Zellen" }
+                ]
+            }
+        ];
+        let aktuelleFrage = 0;
+        let cdInterval = null;
+        let gesamtProzent = 0;
+
+        const antwortContainer = document.getElementById("antwort-container");
+        const frageCon = document.getElementById("frage");
+        const nf = document.getElementById("nf");
+        const nfNum = document.getElementById("countdown");
+        const nfText = document.getElementById("nf-text");
+        const anleitung = document.getElementById("anleitung");
+        const wiederholen = document.getElementById("wiederholen");
+
+        nf.onclick = () => {
+            clearInterval(cdInterval);
+            nf.classList.remove("display");
+            naechsteFrage();
+        };
+
+        wiederholen.onclick = () => {
+            wiederholen.classList.remove("display");
+            aktuelleFrage = 0;
+            gesamtProzent = 0;
+            anleitung.style.display = "";
+            naechsteFrage();
+        };
+
+        function zufaelligMischen(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function fuegeNeueFrageHinzu(liste) {
+            frageCon.textContent = liste.frage;
+            antwortContainer.innerHTML = "";
+
+            zufaelligMischen(liste.antwort_option).forEach(op => {
+                const knopf = document.createElement("button");
+                knopf.classList.add("antwort-option");
+                knopf.id = "opt_" + crypto.randomUUID().replace(/[^a-zA-Z0-9]/g, "_");
+
+                const fueller = document.createElement("div");
+                fueller.classList.add("antwort-op-fueller");
+                fueller.setAttribute("prozent", op.prozent);
+
+                const text = document.createElement("span");
+                text.classList.add("antwort-text");
+                text.textContent = op.text;
+
+                knopf.appendChild(fueller);
+                knopf.appendChild(text);
+                antwortContainer.appendChild(knopf);
+
+                knopf.onclick = () => {
+                    const buttons = antwortContainer.querySelectorAll(".antwort-option");
+                    buttons.forEach(btn => btn.disabled = true);
+
+                    // Punktzahl der gewählten Antwort merken
+                    gesamtProzent += op.prozent;
+
+                    antwortContainer.querySelectorAll(".antwort-op-fueller").forEach(opFueller => {
+                        let prozent = opFueller.getAttribute("prozent");
+                        opFueller.style.width = prozent + "%";
+                        let proInt = parseInt(prozent, 10);
+
+                        let parentButton = opFueller.closest(".antwort-option");
+
+                        if (parentButton.id === knopf.id || proInt === 100) {
+                            if (proInt >= 85) {
+                                parentButton.classList.add("green");
+                            } else if (proInt > 35) {
+                                parentButton.classList.add("orange");
+                            } else {
+                                parentButton.classList.add("red");
+                            }
+                        }
+                    });
+
+                    nfText.textContent = aktuelleFrage >= quiz.length ? "Zum Ergebnis in:" : "Nächste Frage in:";
+                    nf.classList.add("display");
+                    let count = 5;
+                    nfNum.textContent = count;
+
+                    clearInterval(cdInterval);
+                    cdInterval = setInterval(() => {
+                        count--;
+                        nfNum.textContent = count;
+                        if (count <= 0) {
+                            clearInterval(cdInterval);
+                            nf.classList.remove("display");
+                            naechsteFrage();
+                        }
+                    }, 1000);
+                };
+            });
+        }
+
+        function zeigeErgebnis() {
+            const ergebnis = Math.round(gesamtProzent / quiz.length);
+            let titel, farbe;
+
+            if (ergebnis >= 85) {
+                titel = "Ausgezeichnet! 🌟";
+                farbe = "green";
+            } else if (ergebnis >= 65) {
+                titel = "Sehr gut gemacht! 👏";
+                farbe = "green";
+            } else if (ergebnis >= 40) {
+                titel = "Gut! Du bist auf einem guten Weg 👍";
+                farbe = "orange";
+            } else {
+                titel = "Verbesserungswürdig – beim nächsten Mal klappt es besser!";
+                farbe = "orange";
+            }
+
+            frageCon.textContent = "Quiz beendet! Vielen Dank fürs Mitmachen.";
+            antwortContainer.innerHTML = "";
+            anleitung.style.display = "none";
+
+            const box = document.createElement("div");
+            box.classList.add("antwort-option", "ergebnis", farbe);
+
+            const fueller = document.createElement("div");
+            fueller.classList.add("antwort-op-fueller");
+
+            const text = document.createElement("span");
+            text.classList.add("antwort-text");
+
+            const t1 = document.createElement("span");
+            t1.textContent = titel;
+            const t2 = document.createElement("span");
+            t2.classList.add("klein");
+            t2.textContent = "Deine Antworten waren zu " + ergebnis + " % richtig.";
+            text.appendChild(t1);
+            text.appendChild(t2);
+
+            box.appendChild(fueller);
+            box.appendChild(text);
+            antwortContainer.appendChild(box);
+
+            // Balken nach dem Einfügen animieren
+            requestAnimationFrame(() => requestAnimationFrame(() => {
+                fueller.style.width = ergebnis + "%";
+            }));
+
+            wiederholen.classList.add("display");
+            localStorage.setItem("kursQuizStunde1", "true");
+        }
+
+        function naechsteFrage() {
+            if (aktuelleFrage < quiz.length) {
+                let jetzigeFrage = quiz[aktuelleFrage];
+                aktuelleFrage++;
+                fuegeNeueFrageHinzu(jetzigeFrage);
+            } else {
+                zeigeErgebnis();
+            }
+        }
+
+        naechsteFrage();
+    </script>
+</body>
+</html>
